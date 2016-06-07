@@ -16,6 +16,10 @@ var autoprefixer = require('gulp-autoprefixer');
 var notify = require("gulp-notify");
 // Includes the Bourbon Neat libraries
 var neat         = require('node-neat').includePaths;
+// Concats your JS files
+var browserify = require('browserify');
+var watchify = require('watchify');
+var source = require('vinyl-source-stream');
 
 function handleErrors() {
   var args = Array.prototype.slice.call(arguments);
@@ -47,8 +51,32 @@ gulp.task('sass', function () {
     .pipe(gulp.dest('./Timber/assets'));
 });
 
+gulp.task('browserify', function() {
+  return browserify('./lib/js/app.js')
+      .bundle()
+      .on('error', handleErrors)
+      //Pass desired output filename to vinyl-source-stream
+      .pipe(source('bundle.js'))
+      // Start piping stream to tasks!
+      .pipe(gulp.dest('./Timber/assets/'));
+});
+
 gulp.task('watch', function () {
   gulp.watch('./lib/scss/**/*.{sass,scss}', ['sass']);
+  gulp.watch('./lib/js/**/*.js', ['browserify']);
+
+  var watcher = watchify(browserify({
+    // Specify the entry point of your app
+    entries: ['./lib/js/app.js'],
+    debug: true,
+    cache: {}, packageCache: {}, fullPaths: true
+  }));
+
+  return watcher.on('update', function() {
+    watcher.bundle()
+      .pipe(source('bundle.js'))
+      .pipe(gulp.dest('./Timber/assets/'))
+  })
 });
 
 // Default gulp action when gulp is run

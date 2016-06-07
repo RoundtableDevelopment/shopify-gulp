@@ -20,6 +20,8 @@ var neat         = require('node-neat').includePaths;
 var browserify = require('browserify');
 var watchify = require('watchify');
 var source = require('vinyl-source-stream');
+var imagemin   = require('gulp-imagemin');
+var changed    = require('gulp-changed');
 
 function handleErrors() {
   var args = Array.prototype.slice.call(arguments);
@@ -59,6 +61,13 @@ gulp.task('browserify', function() {
       .pipe(source('bundle.js'))
       // Start piping stream to tasks!
       .pipe(gulp.dest('./Timber/assets/'));
+});
+
+gulp.task('images', function() {
+  return gulp.src('./lib/images/**')
+    .pipe(changed('./Timber/assets/')) // Ignore unchanged files
+    .pipe(imagemin()) // Optimize
+    .pipe(gulp.dest('./Timber/assets/'))
 });
 
 gulp.task('watch', function () {
